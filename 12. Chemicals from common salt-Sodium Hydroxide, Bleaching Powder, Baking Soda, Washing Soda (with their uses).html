@@ -1,0 +1,699 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title> Quiz – 12. Chemicals from common salt-Sodium Hydroxide, Bleaching Powder, Baking Soda, Washing Soda (with their uses)</title>
+  <style>
+    body{font-family:Arial, sans-serif;padding:20px;background:#121212;color:#f0f0f0;}
+    #logo{display:block;margin:0 auto 25px;max-width:180px;}
+    #name-container{background:#1e1e1e;padding:30px;border-radius:6px;max-width:420px;margin:0 auto;}
+    #name-container input{width:100%;padding:10px;margin:10px 0 15px;border:none;border-radius:4px;font-size:16px;}
+    #quiz-container{display:none;}
+    .question{border:1px solid #333;padding:15px;margin-bottom:20px;border-radius:5px;background:#1e1e1e;}
+    .question h3{margin:0 0 10px;}
+    /* each option is a label-row: radio + text on same line, one option per row */
+    .option-item {
+      display: flex;                 /* radio + text in same line */
+      align-items: center;
+      gap: 8px;                      /* spacing between radio and text */
+      margin: 6px 0;                 /* space between options */
+      padding: 6px 8px;
+      border-radius: 4px;
+      background: #2a2a2a;
+      color: #ccc;
+      cursor: pointer;
+    }
+    .option-item input[type="radio"] {
+      margin: 0;                     /* no extra offset */
+    }
+    .submit-button,.toggle-button,.dontknow-button{margin-top:10px;padding:6px 12px;background:#007BFF;color:#fff;border:none;border-radius:4px;cursor:pointer;margin-right:5px;}
+    .solution{display:none;margin-top:10px;background:#2d2d2d;padding:10px;border-left:4px solid #28a745;}
+    #scorecard{background:#2d2d2d;padding:15px;border-radius:6px;margin-top:30px;display:none;}
+    #timer{font-weight:bold;color:#00ffcc;}
+    #studentPrintName{text-align:center;font-size:18px;font-weight:bold;margin-top:-15px;margin-bottom:5px;display:none;}
+    #examDateTime{text-align:center;font-size:14px;margin-bottom:20px;display:none;}
+    @media print {
+      body { background: #fff; color:#000; }
+      .submit-button, .dontknow-button, .toggle-button, #reportBtn, #reportModal { display:none !important; }
+      #name-container { display:none !important; }
+    }
+
+    /* 🔹 Floating Report Button */
+    #reportBtn {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: #ff4757;
+      color: white;
+      border: none;
+      padding: 12px 18px;
+      border-radius: 50px;
+      cursor: pointer;
+      font-weight: bold;
+      box-shadow: 0px 4px 10px rgba(0,0,0,0.3);
+      z-index: 1000;
+    }
+
+    /* 🔹 Popup Modal */
+    #reportModal {
+      display: none;
+      position: fixed;
+      bottom: 80px;
+      right: 20px;
+      background: #1e1e1e;
+      border: 1px solid #444;
+      padding: 15px;
+      border-radius: 8px;
+      width: 260px;
+      z-index: 1001;
+    }
+    #reportModal textarea {
+      width: 100%;
+      height: 80px;
+      padding: 8px;
+      border: none;
+      border-radius: 4px;
+      resize: none;
+      font-size: 14px;
+    }
+    #reportModal button {
+      margin-top: 10px;
+      padding: 8px 12px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    #sendReport { background: #28a745; color: white; }
+    #closeReport { background: #dc3545; color: white; margin-left: 5px; }
+  </style>
+  <!-- MathJax -->
+  <script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+</head>
+<body>
+
+<img id="logo" src="https://i.ibb.co/WNZTWPwv/LOGO-PNG-2025-fab.png" alt="Logo" />
+
+<div id="studentPrintName"></div>
+<div id="examDateTime"></div>
+
+<div id="name-container">
+  <h2>Enter your name to begin</h2>
+  <input type="text" id="studentNameInput" placeholder="Your Name" />
+  <button class="submit-button" onclick="startQuiz()">Start Quiz</button>
+</div>
+
+<div id="quiz-container">
+
+  <h2> Quiz – 12. Chemicals from common salt-Sodium Hydroxide, Bleaching Powder, Baking Soda, Washing Soda (with their uses)</h2>
+  
+  <p><strong>Time Elapsed:</strong> <span id="timer">00:00</span></p>
+  <div id="questions-container"></div>
+
+  <div style="margin-top:30px;">
+    <button class="submit-button" onclick="finalSubmit()">Final Submit</button>
+    <button class="submit-button" onclick="printQuestions()">Print Questions</button>
+    <button class="submit-button" id="printScoreBtn" onclick="printScorecard()" style="display:none;">Save or Print Scorecard</button>
+    <!-- 🔹 WhatsApp button instead of PDF -->
+    <button class="submit-button" id="shareWhatsappBtn" style="display:none;">SHARE on WhatsApp</button>
+  </div>
+
+ <div id="scorecard">
+  <h3>Your Scorecard</h3>
+  <p id="scoreText"></p>
+  <table id="scoreTable" border="1" cellspacing="0" cellpadding="6" style="width:100%;border-collapse:collapse;margin-top:15px;">
+    <thead style="background:#333;color:#fff;">
+      <tr>
+        <th>Q.No</th>
+        <th>Question</th>
+        <th>Your Answer</th>
+        <th>Correct Answer</th>
+        <th>Result</th>
+        <th>Solution</th>
+      </tr>
+    </thead>
+    <tbody id="scoreDetails"></tbody>
+  </table>
+</div>
+
+<!-- 🔹 Floating Report Button -->
+<button id="reportBtn">Report Mistake</button>
+
+<!-- 🔹 Popup Modal -->
+<div id="reportModal">
+  <textarea id="reportMsg" placeholder="Describe the mistake..."></textarea>
+  <div style="text-align:right;">
+    <button id="sendReport">Send</button>
+    <button id="closeReport">Close</button>
+  </div>
+</div>
+
+<script>
+const Q = [
+  {
+    "id": "q1",
+    "text": "Common salt is the raw material used for the preparation of which important chemicals?",
+    "options": [
+      "A. \\(NaOH, CaO, CaCO_3\\)",
+      "B. \\(NaOH, CaOCl_2, NaHCO_3, Na_2CO_3\\)",
+      "C. \\(NaCl, HCl, H_2SO_4\\)",
+      "D. \\(NaOH, HNO_3, NH_4Cl\\)"
+    ],
+    "correct": "B",
+    "solution": "Common salt is used to produce \\(NaOH\\) (sodium hydroxide), \\(CaOCl_2\\) (bleaching powder), \\(NaHCO_3\\) (baking soda), and \\(Na_2CO_3\\) (washing soda)."
+  },
+  {
+    "id": "q2",
+    "text": "In the chlor-alkali process, which gases are released at the anode and cathode respectively?",
+    "options": [
+      "A. \\(H_2\\) at anode, \\(Cl_2\\) at cathode",
+      "B. \\(Cl_2\\) at anode, \\(H_2\\) at cathode",
+      "C. \\(O_2\\) at anode, \\(H_2\\) at cathode",
+      "D. \\(H_2\\) at anode, \\(O_2\\) at cathode"
+    ],
+    "correct": "B",
+    "solution": "At the anode chloride ions are oxidised to form \\(Cl_2\\) and at the cathode water is reduced to give \\(H_2\\): \\(2Cl^- \\to Cl_2 + 2e^-\\), \\(2H_2O + 2e^- \\to H_2 + 2OH^-\\)."
+  },
+  {
+    "id": "q3",
+    "text": "What are the main products of the chlor-alkali process?",
+    "options": [
+      "A. \\(NaOH, Cl_2, H_2\\)",
+      "B. \\(NaCl, NaOH, H_2\\)",
+      "C. \\(Cl_2, O_2, Na_2CO_3\\)",
+      "D. \\(HCl, NaCl, NaOH\\)"
+    ],
+    "correct": "A",
+    "solution": "Electrolysis of brine produces \\(NaOH\\), \\(Cl_2\\), and \\(H_2\\)."
+  },
+  {
+    "id": "q4",
+    "text": "Which of the following chemicals is used for making soaps and detergents?",
+    "options": [
+      "A. Sodium hydroxide (\\(NaOH\\))",
+      "B. Bleaching powder (\\(CaOCl_2\\))",
+      "C. Baking soda (\\(NaHCO_3\\))",
+      "D. Washing soda (\\(Na_2CO_3\\))"
+    ],
+    "correct": "A",
+    "solution": "Sodium hydroxide (\\(NaOH\\)) is used in the manufacture of soaps and detergents."
+  },
+  {
+    "id": "q5",
+    "text": "Which reaction represents the preparation of bleaching powder?",
+    "options": [
+      "A. \\(Ca(OH)_2 + Cl_2 \\to CaOCl_2 + H_2O\\)",
+      "B. \\(CaCO_3 + Cl_2 \\to CaOCl_2 + CO_2\\)",
+      "C. \\(CaCl_2 + H_2O \\to CaOCl_2 + HCl\\)",
+      "D. \\(CaO + Cl_2 \\to CaOCl_2\\)"
+    ],
+    "correct": "A",
+    "solution": "Bleaching powder is prepared by passing chlorine over slaked lime: \\(Ca(OH)_2 + Cl_2 \\to CaOCl_2 + H_2O\\)."
+  },
+  {
+    "id": "q6",
+    "text": "Which property of bleaching powder makes it useful for disinfecting drinking water?",
+    "options": [
+      "A. It releases \\(Cl_2\\) on exposure to air",
+      "B. It reacts with acids to form salt",
+      "C. It is soluble in alcohol",
+      "D. It forms \\(O_2\\) on heating"
+    ],
+    "correct": "A",
+    "solution": "Bleaching powder releases \\(Cl_2\\), which kills germs and disinfects water."
+  },
+  {
+    "id": "q7",
+    "text": "Which of the following is used as an antacid?",
+    "options": [
+      "A. \\(Na_2CO_3\\)",
+      "B. \\(CH_3COONa\\)",
+      "C. \\(NaHCO_3\\)",
+      "D. \\(CaOCl_2\\)"
+    ],
+    "correct": "C",
+    "solution": "Baking soda (\\(NaHCO_3\\)) is used as an antacid to neutralise excess acid in the stomach."
+  },
+  {
+    "id": "q8",
+    "text": "Which reaction represents the preparation of baking soda?",
+    "options": [
+      "A. \\(NaCl + H_2O + CO_2 + NH_3 \\to NaHCO_3 + NH_4Cl\\)",
+      "B. \\(NaCl + H_2SO_4 \\to NaHSO_4 + HCl\\)",
+      "C. \\(NaOH + CO_2 \\to Na_2CO_3 + H_2O\\)",
+      "D. \\(NaCl + CO_2 + H_2O \\to Na_2CO_3 + HCl\\)"
+    ],
+    "correct": "A",
+    "solution": "Baking soda is prepared by Solvay process: \\(NaCl + H_2O + CO_2 + NH_3 \\to NaHCO_3 + NH_4Cl\\)."
+  },
+  {
+    "id": "q9",
+    "text": "Which household product contains baking soda as the main ingredient?",
+    "options": [
+      "A. Antiseptic lotion",
+      "B. Baking powder",
+      "C. Toothpaste",
+      "D. Vinegar"
+    ],
+    "correct": "B",
+    "solution": "Baking powder contains baking soda (\\(NaHCO_3\\)) and an acid to release \\(CO_2\\) for making cakes fluffy."
+  },
+  {
+    "id": "q10",
+    "text": "What happens when baking soda is heated?",
+    "options": [
+      "A. \\(NaHCO_3 \\to NaOH + CO_2\\)",
+      "B. \\(2NaHCO_3 \\to Na_2CO_3 + CO_2 + H_2O\\)",
+      "C. \\(NaHCO_3 \\to Na + H_2O + CO_2\\)",
+      "D. \\(NaHCO_3 \\to NaCl + CO_2\\)"
+    ],
+    "correct": "B",
+    "solution": "On heating, baking soda decomposes: \\(2NaHCO_3 \\to Na_2CO_3 + CO_2 + H_2O\\)."
+  },
+  {
+    "id": "q11",
+    "text": "Which of the following is used in fire extinguishers?",
+    "options": [
+      "A. Sodium carbonate (\\(Na_2CO_3\\))",
+      "B. Sodium hydroxide (\\(NaOH\\))",
+      "C. Baking soda (\\(NaHCO_3\\))",
+      "D. Bleaching powder (\\(CaOCl_2\\))"
+    ],
+    "correct": "C",
+    "solution": "Baking soda (\\(NaHCO_3\\)) is used in fire extinguishers as it releases \\(CO_2\\) on heating."
+  },
+  {
+    "id": "q12",
+    "text": "Which of the following represents washing soda?",
+    "options": [
+      "A. \\(Na_2CO_3\\)",
+      "B. \\(Na_2CO_3 \\cdot 10H_2O\\)",
+      "C. \\(NaHCO_3\\)",
+      "D. \\(Na_2O\\)"
+    ],
+    "correct": "B",
+    "solution": "Washing soda is hydrated sodium carbonate: \\(Na_2CO_3 \\cdot 10H_2O\\)."
+  },
+  {
+    "id": "q13",
+    "text": "Which reaction is used to prepare washing soda from baking soda?",
+    "options": [
+      "A. \\(2NaHCO_3 \\xrightarrow{heat} Na_2CO_3 + CO_2 + H_2O\\)",
+      "B. \\(NaHCO_3 + HCl \\to NaCl + CO_2 + H_2O\\)",
+      "C. \\(NaHCO_3 + NaOH \\to Na_2CO_3 + H_2O\\)",
+      "D. \\(NaHCO_3 + O_2 \\to Na_2CO_3 + H_2O\\)"
+    ],
+    "correct": "A",
+    "solution": "On heating, baking soda forms sodium carbonate which crystallises as washing soda: \\(2NaHCO_3 \\to Na_2CO_3 + CO_2 + H_2O\\)."
+  },
+  {
+    "id": "q14",
+    "text": "Which property of washing soda makes it useful in removing permanent hardness of water?",
+    "options": [
+      "A. It forms insoluble carbonates with calcium and magnesium",
+      "B. It reacts with acids to release \\(CO_2\\)",
+      "C. It absorbs moisture from air",
+      "D. It releases chlorine on heating"
+    ],
+    "correct": "A",
+    "solution": "Washing soda reacts with \\(Ca^{2+}\\) and \\(Mg^{2+}\\) ions to form insoluble carbonates, thus removing hardness."
+  },
+  {
+    "id": "q15",
+    "text": "Which of the following is not a use of washing soda?",
+    "options": [
+      "A. Softening hard water",
+      "B. Glass and soap manufacture",
+      "C. Manufacture of caustic soda",
+      "D. As a cleansing agent"
+    ],
+    "correct": "C",
+    "solution": "Caustic soda (\\(NaOH\\)) is not manufactured using washing soda."
+  },
+  {
+    "id": "q16",
+    "text": "Which of the following is used in the manufacture of glass, soap, and paper?",
+    "options": [
+      "A. Sodium hydroxide (\\(NaOH\\))",
+      "B. Washing soda (\\(Na_2CO_3 \\cdot 10H_2O\\))",
+      "C. Baking soda (\\(NaHCO_3\\))",
+      "D. Bleaching powder (\\(CaOCl_2\\))"
+    ],
+    "correct": "B",
+    "solution": "Washing soda (\\(Na_2CO_3 \\cdot 10H_2O\\)) is used in glass, soap, and paper industries."
+  },
+  {
+    "id": "q17",
+    "text": "Which of the following is used as a disinfectant and bleaching agent?",
+    "options": [
+      "A. Sodium hydroxide (\\(NaOH\\))",
+      "B. Bleaching powder (\\(CaOCl_2\\))",
+      "C. Baking soda (\\(NaHCO_3\\))",
+      "D. Washing soda (\\(Na_2CO_3 \\cdot 10H_2O\\))"
+    ],
+    "correct": "B",
+    "solution": "Bleaching powder (\\(CaOCl_2\\)) is used as a bleaching agent in textile industry and a disinfectant in water treatment."
+  },
+  {
+    "id": "q18",
+    "text": "Which of the following products is obtained when chlorine reacts with dry slaked lime?",
+    "options": [
+      "A. \\(CaOCl_2\\) (Bleaching powder)",
+      "B. \\(CaCl_2\\)",
+      "C. \\(CaCO_3\\)",
+      "D. \\(CaSO_4\\)"
+    ],
+    "correct": "A",
+    "solution": "Bleaching powder (\\(CaOCl_2\\)) is prepared by passing chlorine over dry slaked lime."
+  },
+  {
+    "id": "q19",
+    "text": "Which of the following substances is added to cakes to make them soft and fluffy?",
+    "options": [
+      "A. Washing soda (\\(Na_2CO_3\\))",
+      "B. Baking soda (\\(NaHCO_3\\))",
+      "C. Bleaching powder (\\(CaOCl_2\\))",
+      "D. Sodium hydroxide (\\(NaOH\\))"
+    ],
+    "correct": "B",
+    "solution": "Baking soda (\\(NaHCO_3\\)) decomposes on heating to release \\(CO_2\\), making cakes soft and fluffy."
+  },
+  {
+    "id": "q20",
+    "text": "Which reaction represents the use of baking soda in baking powder?",
+    "options": [
+      "A. \\(NaHCO_3 \\xrightarrow{heat} NaOH + CO_2\\)",
+      "B. \\(2NaHCO_3 \\xrightarrow{heat} Na_2CO_3 + CO_2 + H_2O\\)",
+      "C. \\(NaHCO_3 + HCl \\to NaCl + H_2O + CO_2\\)",
+      "D. \\(NaHCO_3 + NaOH \\to Na_2CO_3 + H_2O\\)"
+    ],
+    "correct": "B",
+    "solution": "On heating, \\(2NaHCO_3 \\to Na_2CO_3 + CO_2 + H_2O\\). Released \\(CO_2\\) makes food fluffy."
+  },
+  {
+    "id": "q21",
+    "text": "Which of the following is used in the paper and textile industry for bleaching?",
+    "options": [
+      "A. Sodium hydroxide (\\(NaOH\\))",
+      "B. Bleaching powder (\\(CaOCl_2\\))",
+      "C. Baking soda (\\(NaHCO_3\\))",
+      "D. Washing soda (\\(Na_2CO_3 \\cdot 10H_2O\\))"
+    ],
+    "correct": "B",
+    "solution": "Bleaching powder (\\(CaOCl_2\\)) is used in bleaching paper and textiles."
+  },
+  {
+    "id": "q22",
+    "text": "Which of the following can be used to clean utensils and remove oil stains?",
+    "options": [
+      "A. Sodium hydroxide (\\(NaOH\\))",
+      "B. Washing soda (\\(Na_2CO_3 \\cdot 10H_2O\\))",
+      "C. Bleaching powder (\\(CaOCl_2\\))",
+      "D. Baking soda (\\(NaHCO_3\\))"
+    ],
+    "correct": "B",
+    "solution": "Washing soda (\\(Na_2CO_3 \\cdot 10H_2O\\)) is used as a cleansing agent for washing clothes and utensils."
+  },
+  {
+    "id": "q23",
+    "text": "Which of the following chemicals is used in the manufacture of glass?",
+    "options": [
+      "A. \\(NaOH\\)",
+      "B. \\(NaHCO_3\\)",
+      "C. \\(Na_2CO_3 \\cdot 10H_2O\\)",
+      "D. \\(CaOCl_2\\)"
+    ],
+    "correct": "C",
+    "solution": "Washing soda (\\(Na_2CO_3 \\cdot 10H_2O\\)) is used in glass manufacture."
+  },
+  {
+    "id": "q24",
+    "text": "Which chemical is commonly known as caustic soda?",
+    "options": [
+      "A. \\(NaOH\\)",
+      "B. \\(Na_2CO_3\\)",
+      "C. \\(NaHCO_3\\)",
+      "D. \\(CaOCl_2\\)"
+    ],
+    "correct": "A",
+    "solution": "Sodium hydroxide (\\(NaOH\\)) is commonly called caustic soda."
+  },
+  {
+    "id": "q25",
+    "text": "Which of the following sets correctly pairs the chemical with its main use?",
+    "options": [
+      "A. \\(NaOH\\) – Antacid",
+      "B. \\(CaOCl_2\\) – Disinfectant",
+      "C. \\(NaHCO_3\\) – Glass manufacture",
+      "D. \\(Na_2CO_3\\) – Fire extinguisher"
+    ],
+    "correct": "B",
+    "solution": "Bleaching powder (\\(CaOCl_2\\)) is used as a disinfectant."
+  }
+]
+
+;
+
+
+
+let student = '';
+let timerHandle;
+let printMode = '';
+let examDateTime = '';
+
+/* 🔹 Extract Quiz Title */
+const quizTitle = document.title.split("Quiz")[1]?.trim() || document.title;
+
+function startQuiz() {
+  const name = document.getElementById('studentNameInput').value.trim();
+  if (!name) { alert('Please enter your name.'); return; }
+  student = name;
+  examDateTime = new Date().toLocaleString();
+  document.getElementById('name-container').style.display = 'none';
+  document.getElementById('quiz-container').style.display = 'block';
+  buildQuestions();
+  if (window.MathJax) MathJax.typesetPromise();
+  startTimer();
+}
+
+function buildQuestions() {
+  const out = document.getElementById('questions-container');
+  out.innerHTML = '';
+  Q.forEach((q, index) => {
+    const optionsHTML = q.options.map((opt, i) => {
+      const letter = String.fromCharCode(65 + i);
+      return `
+        <label class="option-item" for="${q.id}-${letter}">
+          <input type="radio" id="${q.id}-${letter}" name="${q.id}" value="${letter}" onchange="enableSubmit('${q.id}')">
+          ${letter}. ${opt}
+        </label>
+      `;
+    }).join('');
+    out.insertAdjacentHTML('beforeend', `
+      <div class="question" id="${q.id}-wrap">
+        <h3>Q${index + 1}. ${q.text}</h3>
+        <div class="options">${optionsHTML}</div>
+        <div id="${q.id}-buttons">
+          <button id="sub-${q.id}" class="submit-button" disabled onclick="grade('${q.id}')">Submit</button>
+          <button class="dontknow-button" onclick="skip('${q.id}')">I Don’t Know</button>
+        </div>
+        <button class="toggle-button" id="btn-sol-${q.id}" style="display:none;" onclick="toggleSolution('sol-${q.id}')">Show Solution</button>
+        <div class="solution" id="sol-${q.id}"><strong>Solution:</strong> ${q.solution}</div>
+      </div>
+    `);
+  });
+  if (window.MathJax) MathJax.typesetPromise(); // 🔹 Rerun MathJax
+}
+
+function enableSubmit(qid) { document.getElementById(`sub-${qid}`).disabled = false; }
+
+function grade(qid) {
+  const q = Q.find(x => x.id === qid);
+  const correct = q.correct;
+  const chosen = document.querySelector(`input[name="${qid}"]:checked`);
+  if (!chosen) return;
+
+  // lock all options for this question
+  document.querySelectorAll(`input[name="${qid}"]`).forEach(i => i.disabled = true);
+
+  // get the label (row) element that wraps the chosen input
+  const chosenLabel = chosen.closest('label.option-item');
+
+  // find the input for the correct value and its label
+  const correctInput = document.querySelector(`input[name="${qid}"][value="${correct}"]`);
+  const correctLabel = correctInput ? correctInput.closest('label.option-item') : null;
+
+  if (chosen.value === correct) {
+    // correct → only chosen turns green
+    if (chosenLabel) {
+      chosenLabel.style.background = '#28a745';
+      chosenLabel.style.color = '#fff';
+    }
+  } else {
+    // wrong → chosen turns red, correct turns green
+    if (chosenLabel) {
+      chosenLabel.style.background = '#dc3545';
+      chosenLabel.style.color = '#fff';
+    }
+    if (correctLabel) {
+      correctLabel.style.background = '#28a745';
+      correctLabel.style.color = '#fff';
+    }
+  }
+
+  // show solution immediately
+  document.getElementById(`sol-${qid}`).style.display = "block";
+
+  // hide the buttons for this question
+  document.getElementById(`${qid}-buttons`).style.display = "none";
+  document.getElementById(`btn-sol-${qid}`).style.display = "none";
+}
+
+function skip(qid) {
+  document.querySelectorAll(`input[name="${qid}"]`).forEach(r => r.disabled = true);
+  showSolutionButton(qid);
+}
+function showSolutionButton(qid) {
+  document.getElementById(`btn-sol-${qid}`).style.display = 'inline-block';
+  document.getElementById(`${qid}-buttons`).style.display = 'none';
+}
+function toggleSolution(id) {
+  const elem = document.getElementById(id);
+  elem.style.display = elem.style.display === 'block' ? 'none' : 'block';
+}
+
+function startTimer() {
+  const display = document.getElementById('timer');
+  const started = Date.now();
+  timerHandle = setInterval(() => {
+    const s = Math.floor((Date.now() - started) / 1000);
+    display.textContent = `${String((s / 60) | 0).padStart(2,'0')}:${String(s % 60).padStart(2,'0')}`;
+  }, 1000);
+}
+
+function finalSubmit() {
+  clearInterval(timerHandle);
+
+  // 🔒 Disable all options after final submission
+  document.querySelectorAll("input[type=radio]").forEach(r => r.disabled = true);
+  document.querySelectorAll(".submit-button, .dontknow-button").forEach(btn => btn.style.display = "none");
+
+  let score = 0, detailHTML = '';
+  Q.forEach((q, index) => {
+    const checked = document.querySelector(`input[name="${q.id}"]:checked`);
+    const chosen = checked ? checked.value : 'Not Answered';
+    const correct = (chosen === q.correct);
+    if (correct) score++;
+
+    detailHTML += `
+      <tr>
+        <td>${index + 1}</td>
+        <td>${q.text}</td>
+        <td>${chosen}</td>
+        <td>${q.correct}</td>
+        <td>${correct ? '✅ Correct' : '❌ Incorrect'}</td>
+        <td>${q.solution}</td>
+      </tr>
+    `;
+  });
+
+  document.getElementById('scoreText').innerText = `${student}, you scored ${score}/${Q.length}.`;
+  document.getElementById('scoreDetails').innerHTML = detailHTML;
+  document.getElementById('scorecard').style.display = 'block';
+  document.getElementById('printScoreBtn').style.display = 'inline-block';
+  document.getElementById('shareWhatsappBtn').style.display = 'inline-block';
+
+  if (window.MathJax) MathJax.typesetPromise(); // 🔹 Rerun MathJax
+}
+
+/* Print */
+function printQuestions() { printMode = "questions"; window.print(); }
+function printScorecard() {
+  document.getElementById("studentPrintName").innerText = student;
+  document.getElementById("examDateTime").innerText = "Exam Date & Time: " + examDateTime;
+  printMode = "scorecard"; window.print();
+}
+window.addEventListener('beforeprint', () => {
+  if (printMode === "questions") {
+    document.querySelector("#questions-container").style.display = "block";
+    document.querySelector("#scorecard").style.display = "none";
+    document.querySelector("#logo").style.display = "none";
+    document.querySelector("#name-container").style.display = "none";
+    document.querySelector("#timer").style.display = "none";
+    document.querySelector("#studentPrintName").style.display = "none";
+    document.querySelector("#examDateTime").style.display = "none";
+  }
+  if (printMode === "scorecard") {
+    document.querySelector("#questions-container").style.display = "none";
+    document.querySelector("#scorecard").style.display = "block";
+    document.querySelector("#logo").style.display = "block";
+    document.querySelector("#name-container").style.display = "none";
+    document.querySelector("#studentPrintName").style.display = "block";
+    document.querySelector("#examDateTime").style.display = "block";
+  }
+});
+window.addEventListener('afterprint', () => {
+  document.querySelector("#questions-container").style.display = "";
+  document.querySelector("#scorecard").style.display = "";
+  document.querySelector("#logo").style.display = "";
+  document.querySelector("#name-container").style.display = "";
+  document.querySelector("#timer").style.display = "";
+  document.querySelector("#studentPrintName").style.display = "none";
+  document.querySelector("#examDateTime").style.display = "none";
+});
+
+/* 🔹 WhatsApp Share */
+document.getElementById("shareWhatsappBtn").addEventListener("click", function () {
+  const whatsappNumber = "9108069409455"; // Must include country code (91 for India)
+  const scoreText = document.getElementById('scoreText').innerText;
+
+  let details = "Details:\n";
+  Q.forEach((q, i) => {
+    const qNum = i + 1;
+    const checked = document.querySelector(`input[name="${q.id}"]:checked`);
+    const userAns = checked ? checked.value : "Not Answered";
+    const correctAns = q.correct;
+
+    if (userAns === correctAns) {
+      details += `Q${qNum} → ✅ Correct (Your Ans: ${userAns})\n`;
+    } else {
+      details += `Q${qNum} → ❌ Wrong (Your Ans: ${userAns} | Correct: ${correctAns})\n`;
+    }
+  });
+
+  const message = `Sir, I have shared my Test Result for checking. Thank you!\n\n📘 Quiz Title: ${quizTitle}\n👤 Student: ${student}\n${scoreText}\n\n${details}`;
+  const waUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`;
+  window.open(waUrl, "_blank");
+});
+
+/* 🔹 Report Mistake Button Logic */
+const reportBtn = document.getElementById("reportBtn");
+const reportModal = document.getElementById("reportModal");
+const sendReport = document.getElementById("sendReport");
+const closeReport = document.getElementById("closeReport");
+const reportMsg = document.getElementById("reportMsg");
+
+reportBtn.onclick = () => {
+  reportModal.style.display = "block";
+};
+closeReport.onclick = () => {
+  reportModal.style.display = "none";
+  reportMsg.value = "";
+};
+sendReport.onclick = () => {
+  const msg = reportMsg.value.trim();
+  if (!msg) { alert("Please write your message before sending."); return; }
+
+  const whatsappNumber = "9108069409455"; // with country code
+  const message = `⚠️ Reported Mistake\n\n📘 Quiz Title: ${quizTitle}\n👤 Student: ${student || "Anonymous"}\n\n📝 Message:\n${msg}`;
+
+  const waUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`;
+  window.open(waUrl, "_blank");
+
+  reportModal.style.display = "none";
+  reportMsg.value = "";
+};
+</script>
+
+</body>
+</html>
